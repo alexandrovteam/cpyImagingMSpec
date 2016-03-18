@@ -30,7 +30,19 @@ def _raise_ims_exception_if_null(arg):
         _raise_ims_exception()
 
 class ImzbReader(object):
+    """
+    Class for reading .imzb format.
+
+    WARNING: the format is not standardized and might change in the future without any backward compatibility considerations; use it at your own risk!
+
+    .imzb format is optimized for very fast m/z-image queries.
+    ImzML files can be converted to it using 'ims convert' tool that
+    must be compiled from source: https://github.com/alexandrovteam/ims-cpp
+    """
     def __init__(self, filename):
+        """
+        Open .imzb file for reading
+        """
         self._filename = filename
         r = _ims.imzb_reader_new(filename)
         _raise_ims_exception_if_null(r)
@@ -38,20 +50,40 @@ class ImzbReader(object):
 
     @property
     def height(self):
+        """
+        Image height
+        """
         return _ims.imzb_reader_height(self._reader)
 
     @property
     def width(self):
+        """
+        Image width
+        """
         return _ims.imzb_reader_width(self._reader)
 
     def get_mz_image(self, mz, ppm):
+        """
+        Read m/z-image formed from peaks within mz * (1 ± 1e-6 * ppm) window.
+
+        Pixels that were not scanned have intensity set to -1.
+        """
         data = np.zeros(self.height * self.width, dtype=np.float32)
         read_func = _ims.imzb_reader_image
-        read_func(self._reader, ffi.cast("double", mz), ffi.cast("double", ppm),
-                  ffi.from_buffer(data))
+        ret = read_func(self._reader, ffi.cast("double", mz), ffi.cast("double", ppm),
+                        ffi.from_buffer(data))
+        if ret < 0:
+            _raise_ims_exception()
         return data.reshape((self.height, self.width))
 
 def measure_of_chaos(im, nlevels):
+    """
+    Compute a measure for the spatial chaos in given image using the level sets method.
+
+    :param im: 2d array
+    :param nlevels: how many levels to use (maximum of 32 in this implementation)
+    :type nlevels: int
+    """
     assert nlevels > 0
     if nlevels > 32:
         raise RuntimeError("maximum of 32 levels is supported")
@@ -80,9 +112,24 @@ def _compute_metric(metric, images_flat, theor_iso_intensities):
                   ffi.from_buffer(abundances))
 
 def isotope_pattern_match(images_flat, theor_iso_intensities):
+    """
+    Measures similarity between total isotope image intensities and the theoretical pattern.
+
+    :param images_flat: list of flattened isotope images
+    :param theor_iso_intensities: list of the corresponding theoretical isotope abundances
+    :rtype: float
+    """
     return _compute_metric(_ims.pattern_match_f, images_flat, theor_iso_intensities)
 
 def isotope_image_correlation(images_flat, weights=None):
+    """
+    Calculates weighted average of correlations between principal peak image and the rest.
+
+    :param images_flat: list of flattened isotope images
+    :param weights: If provided, must be one element shorter than :code:`images_flat` list.
+                    Default value of :code:`None` corresponds to equal weights.
+    :rtype: float
+    """
     if weights is None:
         weights = np.ones(len(images_flat))
     else:
