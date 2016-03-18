@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 import cffi
 import numpy as np
 
@@ -36,6 +37,7 @@ class ImzbReader(object):
     WARNING: the format is not standardized and might change in the future without any backward compatibility considerations; use it at your own risk!
 
     .imzb format is optimized for very fast m/z-image queries.
+
     ImzML files can be converted to it using 'ims convert' tool that
     must be compiled from source: https://github.com/alexandrovteam/ims-cpp
     """
@@ -64,7 +66,7 @@ class ImzbReader(object):
 
     def get_mz_image(self, mz, ppm):
         """
-        Read m/z-image formed from peaks within mz * (1 ± 1e-6 * ppm) window.
+        Read m/z-image formed from peaks within mz × (1 ± 10 :sup:`-6` × ppm) window.
 
         Pixels that were not scanned have intensity set to -1.
         """
