@@ -38,7 +38,7 @@ setup(
     packages=find_packages(where='.'),
     package_data={'cpyImagingMSpec': [shared_lib_filename, 'ims.h']},
     setup_requires=['wheel>=0.27.0'],
-    install_requires=['cffi>=1.0', 'numpy>=1.10'],
+    install_requires=[] if rtd else ['cffi>=1.0', 'numpy>=1.10'],
 
     # force bdist_wheel to believe it's a platform-specific wheel
     ext_modules=[] if rtd else [Extension('cpyImagingMSpec._dummy', sources=['dummy.c'])],

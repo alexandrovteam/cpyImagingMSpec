@@ -1,5 +1,5 @@
-cpyMSpec
-========
+cpyImagingMSpec
+===============
 
 .. currentmodule:: cpyImagingMSpec
 
