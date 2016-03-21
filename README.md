@@ -1,4 +1,4 @@
-# cpyImagingMS [![Documentation Status](https://readthedocs.org/projects/cpyimagingmspec/badge/?version=latest)](http://cpyimagingmspec.readthedocs.org/en/latest/?badge=latest)
+# cpyImagingMSpec [![Documentation Status](https://readthedocs.org/projects/cpyimagingmspec/badge/?version=latest)](http://cpyimagingmspec.readthedocs.org/en/latest/?badge=latest)
 
 Scoring imaging mass spectrometry images for multiple isotopes.
 
