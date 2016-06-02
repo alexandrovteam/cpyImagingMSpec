@@ -64,6 +64,20 @@ class ImzbReader(object):
         """
         return _ims.imzb_reader_width(self._reader)
 
+    @property
+    def min_mz(self):
+        """
+        Minimal m/z value
+        """
+        return _ims.imzb_reader_min_mz(self._reader)
+
+    @property
+    def max_mz(self):
+        """
+        Maximal m/z value
+        """
+        return _ims.imzb_reader_max_mz(self._reader)
+
     def get_mz_image(self, mz, ppm):
         """
         Read m/z-image formed from peaks within mz × (1 ± 10 :sup:`-6` × ppm) window.
