@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import cffi
 import numpy as np
+import numbers
 
 from .utils import shared_lib, full_filename
 
@@ -17,8 +18,13 @@ def _as_buffer(array, numtype):
 
 class _cffi_buffer(object):
     def __init__(self, n, numtype):
-        self.buf = np.zeros(n, dtype=_dtypes[numtype])
-        self.ptr = ffi.cast('void *', self.buf.__array_interface__['data'][0])
+        if isinstance(n, numbers.Number):
+            self.buf = np.zeros(n, dtype=_dtypes[numtype])
+        else:
+            self.buf = _as_buffer(n, numtype)
+
+        self.ptr = ffi.cast(_full_types[numtype] + '*',
+                            self.buf.__array_interface__['data'][0])
 
     def python_data(self):
         return self.buf
@@ -84,13 +90,13 @@ class ImzbReader(object):
 
         Pixels that were not scanned have intensity set to -1.
         """
-        data = np.zeros(self.height * self.width, dtype=np.float32)
+        data = _cffi_buffer(self.height * self.width, 'f')
         read_func = _ims.imzb_reader_image
         ret = read_func(self._reader, ffi.cast("double", mz), ffi.cast("double", ppm),
-                        ffi.from_buffer(data))
+                        data.ptr)
         if ret < 0:
             _raise_ims_exception()
-        return data.reshape((self.height, self.width))
+        return data.buf.reshape((self.height, self.width))
 
 def measure_of_chaos(im, nlevels):
     """
@@ -103,10 +109,10 @@ def measure_of_chaos(im, nlevels):
     assert nlevels > 0
     if nlevels > 32:
         raise RuntimeError("maximum of 32 levels is supported")
-    im = np.asarray(im, dtype=np.float32)
-    return _ims.measure_of_chaos_f(ffi.from_buffer(im),
-                                   ffi.cast("int", im.shape[1]),
-                                   ffi.cast("int", im.shape[0]),
+    im = _cffi_buffer(im, 'f')
+    return _ims.measure_of_chaos_f(im.ptr,
+                                   ffi.cast("int", im.buf.shape[1]),
+                                   ffi.cast("int", im.buf.shape[0]),
                                    ffi.cast("int", nlevels))
 
 def _compute_metric(metric, images_flat, theor_iso_intensities):
@@ -117,15 +123,16 @@ def _compute_metric(metric, images_flat, theor_iso_intensities):
 
     n = len(images_flat)
     images = ffi.new("float*[]", n)
-    for i in range(n):
-        images[i] = ffi.from_buffer(_as_buffer(images_flat[i], 'f'))
-    abundances = _as_buffer(theor_iso_intensities, 'd')
+    buffers = [_cffi_buffer(im, 'f') for im in images_flat]
+    for i, im in enumerate(images_flat):
+        images[i] = buffers[i].ptr
+    abundances = _cffi_buffer(theor_iso_intensities, 'd')
 
     return metric(images,
                   ffi.cast("int", n),
                   ffi.cast("int", len(images_flat[0])),
                   ffi.cast("int", 1),
-                  ffi.from_buffer(abundances))
+                  abundances.ptr)
 
 def isotope_pattern_match(images_flat, theor_iso_intensities):
     """
