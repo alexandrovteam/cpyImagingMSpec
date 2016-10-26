@@ -52,7 +52,7 @@ class ImzbReader(object):
         Open .imzb file for reading
         """
         self._filename = filename
-        r = _ims.imzb_reader_new(filename)
+        r = _ims.imzb_reader_new(filename.encode('utf-8'))
         _raise_ims_exception_if_null(r)
         self._reader = ffi.gc(r, _ims.imzb_reader_free)
 
