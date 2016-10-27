@@ -122,11 +122,12 @@ class ImzbReader(object):
         _ims.free(peaks_ptr[0])
         return df
 
-    def dbscan(self, minPts=None, eps=0.001):
+    def dbscan(self, minPts=None, eps=0.001, min_mz=None, max_mz=None):
         """
         Runs DBSCAN algorithm on the set of all m/z values encountered in the file.
         Meaningful only for centroided data.
         If minPts is not provided, it is set as 2% of the number of spectra.
+        The range can be set through min_mz and max_mz parameters.
 
         Returns m/z bins formatted as a Pandas dataframe with the following columns:
         * left, right - bin boundaries;
@@ -138,9 +139,20 @@ class ImzbReader(object):
         bins_ptr = ffi.new("MzBin**", ffi.NULL)
         if minPts is None:
             minPts = int(self.width * self.height * 0.02)  # FIXME don't assume rectangular
-        n = _ims.imzb_reader_dbscan(self._reader,
-                                    ffi.cast("int", minPts), ffi.cast("double", eps),
-                                    bins_ptr)
+        if (min_mz is None) and (max_mz is None):
+            n = _ims.imzb_reader_dbscan(self._reader,
+                                        ffi.cast("int", minPts), ffi.cast("double", eps),
+                                        bins_ptr)
+        elif (min_mz is None) and (max_mz is not None):
+            min_mz = self.min_mz
+        elif (min_mz is not None) and (max_mz is None):
+            max_mz = self.max_mz + 1
+
+        if min_mz is not None:
+            n = _ims.imzb_reader_dbscan2(self._reader,
+                                         ffi.cast("int", minPts), ffi.cast("double", eps),
+                                         ffi.cast("double", min_mz), ffi.cast("double", max_mz),
+                                         bins_ptr)
         assert ffi.sizeof('MzBin') == 7 * 8
         dtype = [('left', 'f8'), ('right', 'f8'), ('count', 'u8'), ('_', 'u8'),
                  ('sum', 'f8'), ('sumsq', 'f8'), ('intensity', 'f8')]
