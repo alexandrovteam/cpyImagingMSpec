@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import cffi
 import numpy as np
+import pandas as pd
 import numbers
 
 from .utils import shared_lib, full_filename
@@ -97,6 +98,59 @@ class ImzbReader(object):
         if ret < 0:
             _raise_ims_exception()
         return data.buf.reshape((self.height, self.width))
+
+    def peaks(self, min_mz, max_mz):
+        """
+        Returns peaks between min_mz and min_mz formatted as a Pandas dataframe
+        with columns mz, intensity, x, y, z.
+        """
+        peaks_ptr = ffi.new("Peak**", ffi.NULL)
+        n = _ims.imzb_reader_slice(self._reader,
+                                   ffi.cast("double", min_mz), ffi.cast("double", max_mz),
+                                   peaks_ptr)
+        alignment = ffi.alignof('Peak')
+        if alignment == 8:
+            dtype = [('x', 'u4'), ('y', 'u4'), ('z', 'u4'), ('_', 'u4'),
+                     ('mz', 'f8'), ('intensity', 'f4'), ('__', 'f4')]
+        else:
+            dtype = [('x', 'u4'), ('y', 'u4'), ('z', 'u4'),
+                     ('mz', 'f8'), ('intensity', 'f4')]
+        arr = np.frombuffer(ffi.buffer(peaks_ptr[0], n * ffi.sizeof('Peak')), dtype, n)
+        df = pd.DataFrame(arr)
+        if alignment == 8:
+            del df['_'], df['__']
+        _ims.free(peaks_ptr[0])
+        return df
+
+    def dbscan(self, minPts=None, eps=0.001):
+        """
+        Runs DBSCAN algorithm on the set of all m/z values encountered in the file.
+        Meaningful only for centroided data.
+        If minPts is not provided, it is set as 2% of the number of spectra.
+
+        Returns m/z bins formatted as a Pandas dataframe with the following columns:
+        * left, right - bin boundaries;
+        * count - number of peaks in the bin;
+        * mean - average m/z;
+        * sd - standard deviation of m/z;
+        * intensity - total intensity.
+        """
+        bins_ptr = ffi.new("MzBin**", ffi.NULL)
+        if minPts is None:
+            minPts = int(self.width * self.height * 0.02)  # FIXME don't assume rectangular
+        n = _ims.imzb_reader_dbscan(self._reader,
+                                    ffi.cast("int", minPts), ffi.cast("double", eps),
+                                    bins_ptr)
+        assert ffi.sizeof('MzBin') == 7 * 8
+        dtype = [('left', 'f8'), ('right', 'f8'), ('count', 'u8'), ('_', 'u8'),
+                 ('sum', 'f8'), ('sumsq', 'f8'), ('intensity', 'f8')]
+        arr = np.frombuffer(ffi.buffer(bins_ptr[0], n * ffi.sizeof('MzBin')), dtype, n)
+        df = pd.DataFrame(arr)
+        df['mean'] = df['sum'] / df['count']
+        df['sd'] = (df['sumsq'] / df['count'] - df['mean'] ** 2) ** 0.5
+        del df['_'], df['sum'], df['sumsq']
+        _ims.free(bins_ptr[0])
+        return df
 
 def measure_of_chaos(im, nlevels):
     """
