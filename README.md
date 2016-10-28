@@ -9,6 +9,25 @@ Binary builds are provided for convenience, use `pip install cpyImagingMSpec`.
 
 If it didn't work for you or you have security concerns, here's how to install the package from source:
 - Install `cmake` and a recent version of `g++`, preferably 5.3
-  - OS X: `brew install gcc5`
-  - Ubuntu: install `gcc-5` package from `ubuntu-toolchain-r` PPA
-- Run `./make_osx_wheel.sh` or `./make_linux_wheel.sh` and install whatever has been created in the `dist/` directory using `pip`
+  - make sure submodules are loaded ``` git submodule update --init ```
+  - OS X: 
+    - `brew install gcc cmake`
+    - Run `./make_osx_wheel.sh`
+  - Ubuntu: 
+    - install dependancies
+        - `gcc-5` package from `ubuntu-toolchain-r` PPA
+    
+        ``` 
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        sudo apt-get update
+        sudo apt-get install gcc-5 g++-5
+        ```
+        - docker
+        ```
+        apt-get install docker.io
+        ```
+    - Do compile
+    ```
+    sudo bash wheel_builders/make_linux_wheel.sh ims-cpp ims_cffi
+    ``` 
+  - Install whatever has been created in the `dist/` directory using `pip`
