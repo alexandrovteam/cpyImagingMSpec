@@ -122,7 +122,7 @@ class ImzbReader(object):
         _ims.free(peaks_ptr[0])
         return df
 
-    def dbscan(self, minPts=None, eps=0.001, min_mz=None, max_mz=None):
+    def dbscan(self, minPts=None, eps=lambda mz: 1e-6 * mz, min_mz=None, max_mz=None):
         """
         Runs DBSCAN algorithm on the set of all m/z values encountered in the file.
         Meaningful only for centroided data.
@@ -140,27 +140,28 @@ class ImzbReader(object):
         if minPts is None:
             minPts = int(self.width * self.height * 0.02)  # FIXME don't assume rectangular
         if (min_mz is None) and (max_mz is None):
-            n = _ims.imzb_reader_dbscan(self._reader,
-                                        ffi.cast("int", minPts), ffi.cast("double", eps),
-                                        bins_ptr)
+            n = _ims.imzb_reader_dbscan3(self._reader,
+                                         ffi.cast("int", minPts),
+                                         ffi.callback("double(*)(double)", eps),
+                                         bins_ptr)
         elif (min_mz is None) and (max_mz is not None):
             min_mz = self.min_mz
         elif (min_mz is not None) and (max_mz is None):
             max_mz = self.max_mz + 1
 
         if min_mz is not None:
-            n = _ims.imzb_reader_dbscan2(self._reader,
-                                         ffi.cast("int", minPts), ffi.cast("double", eps),
+            n = _ims.imzb_reader_dbscan4(self._reader,
+                                         ffi.cast("int", minPts),
+                                         ffi.callback("double(*)(double)", eps),
                                          ffi.cast("double", min_mz), ffi.cast("double", max_mz),
                                          bins_ptr)
-        assert ffi.sizeof('MzBin') == 7 * 8
+        assert ffi.sizeof('MzBin') == 8 * 8
         dtype = [('left', 'f8'), ('right', 'f8'), ('count', 'u8'), ('_', 'u8'),
-                 ('sum', 'f8'), ('sumsq', 'f8'), ('intensity', 'f8')]
+                 ('intensity', 'f8'), ('median', 'f8'),
+                 ('mean', 'f8'), ('sd', 'f8')]
         arr = np.frombuffer(ffi.buffer(bins_ptr[0], n * ffi.sizeof('MzBin')), dtype, n)
         df = pd.DataFrame(arr)
-        df['mean'] = df['sum'] / df['count']
-        df['sd'] = (df['sumsq'] / df['count'] - df['mean'] ** 2) ** 0.5
-        del df['_'], df['sum'], df['sumsq']
+        del df['_']
         _ims.free(bins_ptr[0])
         return df
 
