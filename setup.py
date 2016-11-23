@@ -1,17 +1,15 @@
 from setuptools import setup, find_packages
-from distutils.core import Extension
 from shutil import copyfile
 import os
+import glob
 
-# before building the wheel, CMake must be run manually from cpp/build;
+# before building the wheel, appropriate wheel_builders script must be run
 
-import sys
-sys.path.insert(0, "cpyImagingMSpec")
-from utils import shared_lib, VERSION
+VERSION = "0.2.3"
 
 rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
-shared_lib_filename = shared_lib('ims_cffi')
+shared_lib_filename = glob.glob("ims-cpp/build/libims_cffi*")[0]
 
 extra_files = {
     os.path.join('ims-cpp', 'cffi', 'ims.h'):
@@ -20,8 +18,8 @@ extra_files = {
 
 if not rtd:
     extra_files.update({
-        os.path.join('ims-cpp', 'build', shared_lib_filename):
-        os.path.join('cpyImagingMSpec', shared_lib_filename)
+        shared_lib_filename:
+        os.path.join('cpyImagingMSpec', os.path.basename(shared_lib_filename))
     })
 
 for src, dst in extra_files.items():
