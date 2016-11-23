@@ -1,6 +1,9 @@
 import os, sys
 
 sys.path.insert(0, '../')
+sys.path.insert(0, '../cpyImagingMSpec')
+
+from utils import VERSION
 
 class Mock(object):
     def __init__(self, *args, **kwargs):
@@ -16,7 +19,9 @@ class Mock(object):
         else:
             return Mock()
 
-MOCK_MODULES = ['cffi', 'numpy']
+version = release = VERSION
+
+MOCK_MODULES = ['cffi', 'pandas', 'cpyImagingMSpec.utils']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
@@ -28,9 +33,6 @@ master_doc = 'index'
 project = u'cpyImagingMSpec'
 copyright = u'2016, Alexandrov Team'
 
-sys.path.insert(0, '../cpyImagingMSpec')
-from utils import VERSION
-version = release = VERSION
-
 exclude_patterns = ['_build']
 pygments_style = 'sphinx'
+autoclass_content = 'both'  # document __init__

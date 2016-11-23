@@ -4,7 +4,7 @@ cpyImagingMSpec
 .. currentmodule:: cpyImagingMSpec
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
 
 Metrics
@@ -23,7 +23,12 @@ All of them return values between 0 and 1, higher values are better.
 API Reference
 =============
 
-.. automodule:: cpyImagingMSpec
+.. automodule:: cpyImagingMSpec.metrics
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: cpyImagingMSpec.io
     :members:
     :undoc-members:
     :show-inheritance:
