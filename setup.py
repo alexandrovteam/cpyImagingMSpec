@@ -9,18 +9,20 @@ VERSION = "0.2.3"
 
 rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
-shared_lib_filename = glob.glob("ims-cpp/build/libims_cffi*")[0]
-
 extra_files = {
     os.path.join('ims-cpp', 'cffi', 'ims.h'):
     os.path.join('cpyImagingMSpec', 'ims.h')
 }
 
 if not rtd:
+    shared_lib_filename = glob.glob("ims-cpp/build/libims_cffi*")[0]
     extra_files.update({
         shared_lib_filename:
         os.path.join('cpyImagingMSpec', os.path.basename(shared_lib_filename))
     })
+    package_data = {'cpyImagingMSpec': [shared_lib_filename, 'ims.h']}
+else:
+    package_data = {}
 
 for src, dst in extra_files.items():
     copyfile(src, dst)
@@ -34,7 +36,7 @@ setup(
     license='Apache 2.0',
     description='utils for processing imaging mass spectrometry data',
     packages=find_packages(where='.'),
-    package_data={'cpyImagingMSpec': [shared_lib_filename, 'ims.h']},
+    package_data=package_data,
     setup_requires=['wheel>=0.27.0'],
     install_requires=[] if rtd else ['cffi>=1.7', 'numpy>=1.10', 'pandas>=0.18'],
 
