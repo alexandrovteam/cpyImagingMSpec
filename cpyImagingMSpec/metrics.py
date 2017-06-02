@@ -1,6 +1,6 @@
 import numpy as np
 
-import utils
+import cpyImagingMSpec.utils as utils
 ffi = utils.init_ffi()
 _ims = utils.load_shared_lib()
 

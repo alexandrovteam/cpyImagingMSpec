@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 
-import utils
+import cpyImagingMSpec.utils as utils
 _ffi = utils.init_ffi()
 _ims = utils.load_shared_lib()
 

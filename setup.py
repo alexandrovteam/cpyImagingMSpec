@@ -5,7 +5,7 @@ import glob
 
 # before building the wheel, appropriate wheel_builders script must be run
 
-VERSION = "0.2.3"
+VERSION = "0.2.4"
 
 rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
@@ -43,7 +43,7 @@ setup(
     ext_modules=[],
 
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: Apache Software License',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
