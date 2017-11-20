@@ -5,7 +5,7 @@ import glob
 
 # before building the wheel, appropriate wheel_builders script must be run
 
-VERSION = "0.2.4"
+VERSION = "0.3.0"
 
 rtd = os.environ.get('READTHEDOCS', None) == 'True'
 

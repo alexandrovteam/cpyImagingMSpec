@@ -6,6 +6,9 @@ import cpyImagingMSpec.utils as utils
 _ffi = utils.init_ffi()
 _ims = utils.load_shared_lib()
 
+def convert_imzml_to_imzb(input_filename, output_filename):
+    _ims.imzb_convert_from_imzml(input_filename, output_filename)
+
 class ImzbReader(object):
     """
     Class for reading .imzb file format, which is optimized for very fast m/z-image queries.
