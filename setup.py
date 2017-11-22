@@ -16,11 +16,12 @@ extra_files = {
 
 if not rtd:
     shared_lib_filename = glob.glob("ims-cpp/build/libims_cffi*")[0]
+    rel_path = os.path.basename(shared_lib_filename)
     extra_files.update({
         shared_lib_filename:
-        os.path.join('cpyImagingMSpec', os.path.basename(shared_lib_filename))
+        os.path.join('cpyImagingMSpec', rel_path)
     })
-    package_data = {'cpyImagingMSpec': [shared_lib_filename, 'ims.h']}
+    package_data = {'cpyImagingMSpec': [rel_path, 'ims.h']}
 else:
     package_data = {}
 

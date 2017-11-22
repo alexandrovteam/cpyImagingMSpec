@@ -7,7 +7,7 @@ _ffi = utils.init_ffi()
 _ims = utils.load_shared_lib()
 
 def convert_imzml_to_imzb(input_filename, output_filename):
-    _ims.imzb_convert_from_imzml(input_filename, output_filename)
+    _ims.imzb_convert_from_imzml(input_filename.encode('utf-8'), output_filename.encode('utf-8'))
 
 class ImzbReader(object):
     """
