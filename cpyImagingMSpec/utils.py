@@ -56,4 +56,4 @@ def raise_ims_exception_if_null(arg):
     if arg == _ffi.NULL:
         raise_ims_exception()
 
-VERSION = "0.3.0"
+VERSION = "0.3.1"
